@@ -46,10 +46,35 @@ def get_department(category):
         category,
         "General Administration"
     )
+
+SLA_RULES = {
+    "Critical": timedelta(hours=12),
+    "High": timedelta(hours=36),
+    "Medium": timedelta(days=5),
+    "Low": timedelta(days=14),
+}
+
+
+def calculate_sla_deadline(priority_level: str, created_at: datetime):
+    return created_at + SLA_RULES.get(
+        priority_level,
+        timedelta(days=14)
+    )
+
+VALID_STATUSES = [
+    "Pending",
+    "Assigned",
+    "In Progress",
+    "Resolved"
+]
+
+
 class ComplaintRequest(BaseModel):
     complaint: str
     location: str
 
+class StatusUpdateRequest(BaseModel):
+    status: str
 
 @app.get("/")
 def home():
@@ -105,7 +130,10 @@ def submit_complaint(request: ComplaintRequest):
         "status": "Pending",
         "assigned_department": get_department(processed["category"]),
         "assigned_to": None,
-        "sla_deadline": None,
+        "sla_deadline": calculate_sla_deadline(
+            ranking["priority_level"],
+            now
+        ),
         "escalated": False,
         "resolution_remarks": None,
 
@@ -118,6 +146,19 @@ def submit_complaint(request: ComplaintRequest):
 
     # Store complaint
     complaints_collection.insert_one(result)
+
+    print("\nComplaint Submitted Successfully")
+    print("=" * 50)
+    print(f"Complaint ID       : {result['complaint_id']}")
+    print(f"Category           : {result['category']}")
+    print(f"Urgency            : {result['urgency']}")
+    print(f"Priority Score     : {result['priority_score']}")
+    print(f"Priority Level     : {result['priority_level']}")
+    print(f"Department         : {result['assigned_department']}")
+    print(f"Status             : {result['status']}")
+    print(f"SLA Deadline       : {result['sla_deadline']}")
+    print(f"Created At         : {result['created_at']}")
+    print("=" * 50)
 
     # Remove unnecessary fields from API response
     response.pop("embedding", None)
@@ -201,14 +242,34 @@ def submit_speech_complaint(
         urgency=processed["urgency"],
     )
 
+    now = datetime.now(timezone.utc)
+
     result = {
         **processed,
+
+        "complaint_id": generate_complaint_id(),
+
         "similar_count": len(matches),
         "priority_score": ranking["priority_score"],
         "priority_level": ranking["priority_level"],
+
         "complaint": transcribed_text,
         "transcribed_complaint": transcribed_text,
-        "created_at": datetime.now(timezone.utc),
+
+        "status": "Pending",
+        "assigned_department": get_department(processed["category"]),
+        "assigned_to": None,
+
+        "sla_deadline": calculate_sla_deadline(
+            ranking["priority_level"],
+            now
+        ),
+
+        "escalated": False,
+        "resolution_remarks": None,
+
+        "created_at": now,
+        "updated_at": now,
     }
 
     # Create response BEFORE MongoDB adds _id
@@ -389,3 +450,38 @@ def get_analytics_activity_summary():
         return {"summary": summary_text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database activity summary generation error: {str(e)}")
+
+
+@app.patch("/complaints/{complaint_id}/status")
+def update_complaint_status(
+    complaint_id: str,
+    request: StatusUpdateRequest
+):
+
+    if request.status not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status. Allowed values: {VALID_STATUSES}"
+        )
+
+    result = complaints_collection.update_one(
+        {"complaint_id": complaint_id},
+        {
+            "$set": {
+                "status": request.status,
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Complaint not found"
+        )
+
+    return {
+        "message": "Complaint status updated successfully",
+        "complaint_id": complaint_id,
+        "status": request.status
+    }
