@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import tempfile
 import shutil
 import os
+import uuid
 from datetime import datetime, timezone, timedelta
 
 from backend.speech.speech_to_text import transcribe_audio
@@ -24,7 +25,27 @@ processor = ComplaintProcessor()
 similarity = SimilarityEngine()
 priority = PriorityEngine()
 
+def generate_complaint_id():
+    return f"CMP-{uuid.uuid4().hex[:8].upper()}"
 
+DEPARTMENT_MAPPING = {
+    "Roads": "Roads & Infrastructure Department",
+    "Water Supply": "Water Supply Department",
+    "Electricity": "Electrical Department",
+    "Healthcare": "Health Department",
+    "Education": "Education Department",
+    "Sanitation": "Sanitation Department",
+    "Public Transport": "Transport Department",
+    "Environment": "Environment Department",
+    "Housing": "Housing Department",
+    "Other": "General Administration"
+}
+
+def get_department(category):
+    return DEPARTMENT_MAPPING.get(
+        category,
+        "General Administration"
+    )
 class ComplaintRequest(BaseModel):
     complaint: str
     location: str
@@ -66,14 +87,30 @@ def submit_complaint(request: ComplaintRequest):
         urgency=processed["urgency"],
     )
 
+    now = datetime.now(timezone.utc)
+
     result = {
         **processed,
+
+        "complaint_id": generate_complaint_id(),
+
         "similar_count": len(matches),
         "priority_score": ranking["priority_score"],
         "priority_level": ranking["priority_level"],
+
         "complaint": request.complaint,
         "transcribed_complaint": None,
-        "created_at": datetime.now(timezone.utc),
+
+        # Complaint management
+        "status": "Pending",
+        "assigned_department": get_department(processed["category"]),
+        "assigned_to": None,
+        "sla_deadline": None,
+        "escalated": False,
+        "resolution_remarks": None,
+
+        "created_at": now,
+        "updated_at": now,
     }
 
     # Create response BEFORE MongoDB adds _id
@@ -106,7 +143,7 @@ def submit_speech_complaint(
             detail=f"Unsupported file format '{suffix}'. Allowed formats: {', '.join(allowed_extensions)}"
         )
 
-    # 3. File Size Validation (Limit to 10MB)
+    # 3. File Size Validation
     MAX_SIZE = 10 * 1024 * 1024
     audio.file.seek(0, 2)
     file_size = audio.file.tell()
