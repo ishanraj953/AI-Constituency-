@@ -1,0 +1,3 @@
+GROQ_MODEL = "openai/gpt-oss-20b"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+SIMILARITY_THRESHOLD = 0.65

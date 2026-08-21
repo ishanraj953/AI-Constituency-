@@ -1,0 +1,40 @@
+# Node modules
+node_modules/
+.env
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Build folders
+dist/
+build/
+
+# Python cache
+.pytest_cache/
+
+# Coverage
+coverage/
+
+# MongoDB local files (if any)
+*.lock
