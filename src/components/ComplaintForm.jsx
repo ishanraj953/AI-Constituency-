@@ -41,16 +41,13 @@ export default function ComplaintForm({ onSubmitStart, onSubmitSuccess, onSubmit
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const AllOriginsProxy = 'https://api.allorigins.win/raw?url=';
         const reverseGeocode = async (lat, lon) => {
-          const target = encodeURIComponent(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
-          const url = `${AllOriginsProxy}${target}`;
+          const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
           const res = await fetch(url);
           const data = await res.json();
-          // Extract only the needed address fields – avoid any SVG/HTML content
-          const address = data.address?.city || data.address?.town || data.address?.village || '';
-          const state = data.address?.state || '';
-          return `${address}, ${state}`.trim();
+          const address = data.city || data.locality || '';
+          const state = data.principalSubdivision || '';
+          return `${address}, ${state}`.replace(/^,\s*/, '').replace(/,\s*$/, '').trim();
         };
         try {
           const { latitude, longitude } = pos.coords;

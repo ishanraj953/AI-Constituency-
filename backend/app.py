@@ -76,6 +76,13 @@ class ComplaintRequest(BaseModel):
 class StatusUpdateRequest(BaseModel):
     status: str
 
+class AssignmentRequest(BaseModel):
+    assigned_to: str
+
+class ResolutionRequest(BaseModel):
+    resolution_remarks: str
+
+
 @app.get("/")
 def home():
     return {
@@ -115,32 +122,49 @@ def submit_complaint(request: ComplaintRequest):
     now = datetime.now(timezone.utc)
 
     result = {
-        **processed,
-
-        "complaint_id": generate_complaint_id(),
-
-        "similar_count": len(matches),
-        "priority_score": ranking["priority_score"],
-        "priority_level": ranking["priority_level"],
-
-        "complaint": request.complaint,
-        "transcribed_complaint": None,
-
-        # Complaint management
-        "status": "Pending",
-        "assigned_department": get_department(processed["category"]),
-        "assigned_to": None,
-        "sla_deadline": calculate_sla_deadline(
-            ranking["priority_level"],
-            now
-        ),
-        "escalated": False,
-        "resolution_remarks": None,
-
-        "created_at": now,
-        "updated_at": now,
-    }
-
+    **processed,
+    "complaint_id": generate_complaint_id(),
+    "similar_count": len(matches),
+    "priority_score": ranking["priority_score"],
+    "priority_level": ranking["priority_level"],
+    "complaint": request.complaint,
+    "transcribed_complaint": None,
+    # Complaint management
+    "status": "Pending",
+    "assigned_department": get_department(
+        processed["category"]
+    ),
+    "assigned_to": None,
+    "sla_deadline": calculate_sla_deadline(
+        ranking["priority_level"],
+        now
+    ),
+    "escalated": False,
+    "resolution_remarks": None,
+    # Activity history
+    "activity_log": [
+        {
+            "action": "Complaint Submitted",
+            "timestamp": now,
+        },
+        {
+            "action": (
+                f"Assigned to "
+                f"{get_department(processed['category'])}"
+            ),
+            "timestamp": now,
+        },
+        {
+            "action": (
+                f"SLA deadline assigned based on "
+                f"{ranking['priority_level']} priority"
+            ),
+            "timestamp": now,
+        },
+    ],
+    "created_at": now,
+    "updated_at": now,
+}
     # Create response BEFORE MongoDB adds _id
     response = result.copy()
 
@@ -458,30 +482,198 @@ def update_complaint_status(
     request: StatusUpdateRequest
 ):
 
+    # Validate status
     if request.status not in VALID_STATUSES:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid status. Allowed values: {VALID_STATUSES}"
         )
 
-    result = complaints_collection.update_one(
-        {"complaint_id": complaint_id},
-        {
-            "$set": {
-                "status": request.status,
-                "updated_at": datetime.now(timezone.utc)
-            }
-        }
+    # Find existing complaint first
+    complaint = complaints_collection.find_one(
+        {"complaint_id": complaint_id}
     )
 
-    if result.matched_count == 0:
+    if not complaint:
         raise HTTPException(
             status_code=404,
             detail="Complaint not found"
         )
 
+    # Get current status
+    old_status = complaint.get("status", "Pending")
+
+    # Current timestamp
+    now = datetime.now(timezone.utc)
+
+    # Update complaint and add activity log
+    complaints_collection.update_one(
+        {"complaint_id": complaint_id},
+        {
+            "$set": {
+                "status": request.status,
+                "updated_at": now
+            },
+
+            "$push": {
+                "activity_log": {
+                    "action": (
+                        f"Status changed from "
+                        f"{old_status} to {request.status}"
+                    ),
+                    "timestamp": now
+                }
+            }
+        }
+    )
+
     return {
         "message": "Complaint status updated successfully",
         "complaint_id": complaint_id,
+        "old_status": old_status,
         "status": request.status
+    }
+
+@app.patch("/complaints/{complaint_id}/assign")
+def assign_complaint(
+    complaint_id: str,
+    request: AssignmentRequest
+):
+
+    # Find the existing complaint
+    complaint = complaints_collection.find_one(
+        {"complaint_id": complaint_id}
+    )
+
+    if not complaint:
+        raise HTTPException(
+            status_code=404,
+            detail="Complaint not found"
+        )
+
+    # Get previous assignment and status
+    old_assigned_to = complaint.get("assigned_to")
+    old_status = complaint.get("status", "Pending")
+
+    # Current timestamp
+    now = datetime.now(timezone.utc)
+
+    # Create activity message
+    if old_assigned_to:
+        action_message = (
+            f"Complaint reassigned from "
+            f"{old_assigned_to} to {request.assigned_to}"
+        )
+    else:
+        action_message = (
+            f"Complaint assigned to {request.assigned_to}"
+        )
+
+    # Update complaint and add activity log
+    complaints_collection.update_one(
+        {"complaint_id": complaint_id},
+        {
+            "$set": {
+                "assigned_to": request.assigned_to,
+                "status": "Assigned",
+                "updated_at": now
+            },
+
+            "$push": {
+                "activity_log": {
+                    "action": action_message,
+                    "timestamp": now
+                }
+            }
+        }
+    )
+
+    return {
+        "message": "Complaint assigned successfully",
+        "complaint_id": complaint_id,
+        "assigned_to": request.assigned_to,
+        "previous_status": old_status,
+        "status": "Assigned"
+    }
+
+@app.patch("/complaints/{complaint_id}/resolve")
+def resolve_complaint(
+    complaint_id: str,
+    request: ResolutionRequest
+):
+
+    # Find existing complaint
+    complaint = complaints_collection.find_one(
+        {"complaint_id": complaint_id}
+    )
+
+    if not complaint:
+        raise HTTPException(
+            status_code=404,
+            detail="Complaint not found"
+        )
+
+    # Get current status
+    old_status = complaint.get("status", "Pending")
+
+    # Current timestamp
+    now = datetime.now(timezone.utc)
+
+    # Update complaint and add activity log
+    complaints_collection.update_one(
+        {"complaint_id": complaint_id},
+        {
+            "$set": {
+                "resolution_remarks": request.resolution_remarks,
+                "status": "Resolved",
+                "updated_at": now
+            },
+
+            "$push": {
+                "activity_log": {
+                    "action": (
+                        f"Complaint resolved. "
+                        f"Previous status: {old_status}"
+                    ),
+                    "timestamp": now
+                }
+            }
+        }
+    )
+
+    return {
+        "message": "Complaint resolved successfully",
+        "complaint_id": complaint_id,
+        "previous_status": old_status,
+        "status": "Resolved",
+        "resolution_remarks": request.resolution_remarks
+    }
+# we have to automate it also
+
+@app.post("/complaints/check-escalations")
+def check_escalations():
+
+    current_time = datetime.now(timezone.utc)
+
+    result = complaints_collection.update_many(
+        {
+            "status": {
+                "$ne": "Resolved"
+            },
+            "sla_deadline": {
+                "$lt": current_time
+            }
+        },
+        {
+            "$set": {
+                "escalated": True,
+                "status": "Escalated",
+                "updated_at": current_time
+            }
+        }
+    )
+
+    return {
+        "message": "Escalation check completed",
+        "escalated_count": result.modified_count
     }
