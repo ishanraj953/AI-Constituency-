@@ -64,6 +64,22 @@ export const getComplaints = async () => {
   }
 };
 
+/**
+ * Track a complaint by Complaint ID
+ * GET /complaints/{complaint_id}/track
+ */
+export const trackComplaint = async (complaintId) => {
+  try {
+    const response = await api.get(
+      `/complaints/${encodeURIComponent(complaintId.trim())}/track`
+    )
+
+    return response.data
+  } catch (error) {
+    console.error('Error tracking complaint:', error)
+    throw error
+  }
+}
 
 /**
  * Assign a complaint to an officer
@@ -159,4 +175,5 @@ export default {
   assignComplaint,
   updateComplaintStatus,
   resolveComplaint,
+  trackComplaint
 };

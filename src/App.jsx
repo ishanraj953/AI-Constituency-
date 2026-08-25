@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import ComplaintManagement from './pages/ComplaintManagement';
+import CitizenTracking from './pages/CitizenTracking';
 
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
 
       case 'dashboard':
         return <Dashboard setActivePage={setActivePage} />;
+      case 'tracking':
+        return <CitizenTracking setActivePage={setActivePage} />;
 
       case 'analytics':
         return <Analytics setActivePage={setActivePage} />;

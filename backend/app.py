@@ -47,6 +47,19 @@ def get_department(category):
         "General Administration"
     )
 
+def add_activity(complaint_id: str, action: str):
+    complaints_collection.update_one(
+        {"complaint_id": complaint_id},
+        {
+            "$push": {
+                "activity_log": {
+                    "action": action,
+                    "timestamp": datetime.now().isoformat()
+                }
+            }
+        }
+    )
+
 SLA_RULES = {
     "Critical": timedelta(hours=12),
     "High": timedelta(hours=36),
@@ -142,25 +155,29 @@ def submit_complaint(request: ComplaintRequest):
     "escalated": False,
     "resolution_remarks": None,
     # Activity history
-    "activity_log": [
-        {
-            "action": "Complaint Submitted",
-            "timestamp": now,
-        },
-        {
-            "action": (
-                f"Assigned to "
-                f"{get_department(processed['category'])}"
-            ),
-            "timestamp": now,
-        },
-        {
-            "action": (
-                f"SLA deadline assigned based on "
-                f"{ranking['priority_level']} priority"
-            ),
-            "timestamp": now,
-        },
+"activity_log": [
+    {
+        "action": "Complaint Submitted",
+        "timestamp": now.isoformat(),
+    },
+    {
+        "action": "AI Processing Completed",
+        "timestamp": now.isoformat(),
+    },
+    {
+        "action": (
+            f"Assigned to "
+            f"{get_department(processed['category'])}"
+        ),
+        "timestamp": now.isoformat(),
+    },
+    {
+        "action": (
+            f"SLA deadline assigned based on "
+            f"{ranking['priority_level']} priority"
+        ),
+        "timestamp": now.isoformat(),
+    },
     ],
     "created_at": now,
     "updated_at": now,
@@ -533,6 +550,22 @@ def update_complaint_status(
         "old_status": old_status,
         "status": request.status
     }
+
+@app.get("/complaints/{complaint_id}/track")
+def track_complaint(complaint_id: str):
+
+    complaint = complaints_collection.find_one(
+        {"complaint_id": complaint_id},
+        {"_id": 0, "embedding": 0}
+    )
+
+    if not complaint:
+        raise HTTPException(
+            status_code=404,
+            detail="Complaint not found"
+        )
+
+    return complaint
 
 @app.patch("/complaints/{complaint_id}/assign")
 def assign_complaint(

@@ -23,7 +23,11 @@ export default function Navbar({ activePage, setActivePage }) {
                 fill="currentColor"
                 className="h-6 w-6"
               >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"
+                  />
               </svg>
 
             </div>
@@ -65,16 +69,41 @@ export default function Navbar({ activePage, setActivePage }) {
                 className="h-4 w-4"
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 001.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                />
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"
+                  />
               </svg>
 
               Citizen Complaint
 
             </button>
+            {/* Track Complaint */}
+              <button
+                onClick={() => setActivePage('tracking')}
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  activePage === 'tracking'
+                    ? 'bg-govblue-50 text-govblue-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4"
+                >
+                  <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"
+                    />
+                </svg>
 
+                Track Complaint
+              </button>
 
             {/* MP Dashboard */}
             <button
@@ -97,7 +126,7 @@ export default function Navbar({ activePage, setActivePage }) {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"
+                  d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"
                 />
               </svg>
 
@@ -125,10 +154,10 @@ export default function Navbar({ activePage, setActivePage }) {
                 className="h-4 w-4"
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75 11.25 15 15 9.75m5.25 2.25a8.25 8.25 0 11-16.5 0 8.25 8.25 0 0116.5 0z"
-                />
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"
+                  />
               </svg>
 
               Complaint Management

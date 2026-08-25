@@ -488,7 +488,6 @@ const immediateAttentionComplaints = getImmediateAttentionComplaints()
 
         </div>
 
-
         {/* Immediate Attention Required */}
       {immediateAttentionComplaints.length > 0 && (
   <section className="m-8 border border-red-200 bg-red-50">
