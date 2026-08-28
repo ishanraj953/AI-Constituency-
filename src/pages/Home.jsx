@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ComplaintForm from '../components/ComplaintForm';
 import ResultCard from '../components/ResultCard';
 import Loader from '../components/Loader';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -27,17 +28,26 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
       {/* Hero Welcome Header */}
-      <div className="text-center md:text-left mb-10">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center md:text-left mb-10"
+      >
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl font-['Outfit']">
           Citizen Grievance Redressal Portal
         </h1>
         <p className="mt-2 text-base text-slate-600 max-w-2xl">
           Submit your concerns directly to your local representative. Our AI engine automatically processes, categorizes, and tracks your complaint in real-time.
         </p>
-      </div>
+      </motion.div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+      >
         {/* Left Side: Submission Form */}
         <div className="lg:col-span-5 space-y-6">
           <ComplaintForm
@@ -148,7 +158,7 @@ export default function Home() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </main>
   );
 }

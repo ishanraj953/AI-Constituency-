@@ -14,3 +14,4 @@ db = client[
 ]
 
 complaints_collection = db["complaints"]
+users_collection = db["users"]

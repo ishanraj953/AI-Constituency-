@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { trackComplaint } from '../services/api';
 
-export default function CitizenTracking({ setActivePage }) {
+export default function CitizenTracking() {
+  const navigate = useNavigate();
   const [complaintId, setComplaintId] = useState('');
+
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -404,7 +407,7 @@ const handleTrackComplaint = async (e) => {
 
           <div className="mt-8 flex justify-center">
             <button
-              onClick={() => setActivePage('home')}
+              onClick={() => navigate('/user/submit')}
               className="border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               Submit Another Complaint

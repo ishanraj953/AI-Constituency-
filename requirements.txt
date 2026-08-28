@@ -1,5 +1,7 @@
 fastapi
+uvicorn[standard]
 pydantic
+email-validator
 pymongo
 groq
 python-dotenv
@@ -8,3 +10,7 @@ sentence-transformers
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch
 google-genai
+bcrypt
+pyjwt
+pillow
+requests
