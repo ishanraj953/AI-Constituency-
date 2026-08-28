@@ -4,6 +4,9 @@ import tempfile
 import shutil
 import os
 import uuid
+from backend.verification.complaint_verifier import ComplaintVerifier
+from backend.geo.geo_extractor import extract_geo_location
+from backend.image_analysis.image_analyzer import ImageAnalyzer
 from datetime import datetime, timezone, timedelta
 
 from backend.speech.speech_to_text import transcribe_audio
@@ -24,6 +27,8 @@ app = FastAPI(
 processor = ComplaintProcessor()
 similarity = SimilarityEngine()
 priority = PriorityEngine()
+image_analyzer = ImageAnalyzer()
+verifier = ComplaintVerifier()
 
 def generate_complaint_id():
     return f"CMP-{uuid.uuid4().hex[:8].upper()}"
@@ -104,17 +109,62 @@ def home():
 
 
 @app.post("/complaints")
-def submit_complaint(request: ComplaintRequest):
+async def submit_complaint(
+    complaint: str = Form(...),
+    location: str = Form(...),
+    pincode: str = Form(...),
+    ward_no: str = Form(...),
+    image: UploadFile = File(...),
+):
 
-    processed = processor.process(request.complaint)
+    # Read uploaded image
+    image_bytes = await image.read()
 
-    processed["location"] = request.location
+    # Extract GPS coordinates from image EXIF
+    geo_location = extract_geo_location(image_bytes)
+
+    image_analysis = image_analyzer.analyze(
+    image_bytes=image_bytes,
+    content_type=image.content_type
+    )
+
+    # Reject images without geo-tag information
+    if not geo_location:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Image does not contain GPS location data. "
+                "Please upload a geo-tagged image."
+            ),
+        )
+
+    # Save the image locally
+    os.makedirs("uploads/images", exist_ok=True)
+    file_ext = os.path.splitext(image.filename)[1] if image.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+    image_path = os.path.join("uploads", "images", unique_filename)
+    
+    with open(image_path, "wb") as f:
+        f.write(image_bytes)
+
+    processed = processor.process(complaint)
+
+    verification = verifier.verify(
+    complaint=complaint,
+    text_summary=processed["summary"],
+    text_category=processed["category"],
+    image_summary=image_analysis["image_summary"],
+    image_category=image_analysis["detected_category"],
+    image_valid=image_analysis["is_valid_civic_issue"]
+    )
+
+    processed["location"] = location
 
     filtered_complaints = list(
         complaints_collection.find(
             {
                 "category": processed["category"],
-                "location": request.location,
+                "location": location,
             },
             {
                 "_id": 0,
@@ -135,73 +185,151 @@ def submit_complaint(request: ComplaintRequest):
     now = datetime.now(timezone.utc)
 
     result = {
+
     **processed,
+
     "complaint_id": generate_complaint_id(),
+
     "similar_count": len(matches),
+
     "priority_score": ranking["priority_score"],
+
     "priority_level": ranking["priority_level"],
-    "complaint": request.complaint,
+
+    "complaint": complaint,
+
     "transcribed_complaint": None,
+
+    # Location information
+    "location": location,
+
+    "pincode": pincode,
+
+    "ward_no": ward_no,
+
+    # Geo-tagged image information
+    "image_filename": image.filename,
+    "image_content_type": image.content_type,
+    "image_path": image_path,
+    "latitude": geo_location["latitude"],
+    "longitude": geo_location["longitude"],
+
+    # AI image analysis
+    "is_valid_civic_issue": image_analysis["is_valid_civic_issue"],
+    "detected_category": image_analysis["detected_category"],
+    "detected_severity": image_analysis["detected_severity"],
+    "image_confidence": image_analysis["confidence"],
+    "image_summary": image_analysis["image_summary"],
+    "image_analysis": image_analysis,
+
+    # AI cross-verification
+
+    "verification": verification,
+
+    "verification_status":
+        verification["verification_status"],
+
+    "verification_score":
+        verification["match_score"],
+
+    "category_match":
+        verification["category_match"],
     # Complaint management
     "status": "Pending",
+
     "assigned_department": get_department(
         processed["category"]
     ),
+
     "assigned_to": None,
+
     "sla_deadline": calculate_sla_deadline(
         ranking["priority_level"],
         now
     ),
+
     "escalated": False,
+
     "resolution_remarks": None,
+
     # Activity history
-"activity_log": [
-    {
-        "action": "Complaint Submitted",
-        "timestamp": now.isoformat(),
-    },
-    {
-        "action": "AI Processing Completed",
-        "timestamp": now.isoformat(),
-    },
-    {
-        "action": (
-            f"Assigned to "
-            f"{get_department(processed['category'])}"
-        ),
-        "timestamp": now.isoformat(),
-    },
-    {
-        "action": (
-            f"SLA deadline assigned based on "
-            f"{ranking['priority_level']} priority"
-        ),
-        "timestamp": now.isoformat(),
-    },
+    "activity_log": [
+
+        {
+            "action": "Complaint Submitted",
+            "timestamp": now.isoformat(),
+        },
+
+        {
+            "action": "Geo-tagged Image Verified",
+            "timestamp": now.isoformat(),
+        },
+        {
+            "action": "AI Image Analysis Completed",
+            "timestamp": now.isoformat(),
+        },
+
+        {
+            "action": "AI Processing Completed",
+            "timestamp": now.isoformat(),
+        },
+
+        {
+            "action": (
+                f"Assigned to "
+                f"{get_department(processed['category'])}"
+            ),
+            "timestamp": now.isoformat(),
+        },
+
+        {
+            "action": (
+                f"SLA deadline assigned based on "
+                f"{ranking['priority_level']} priority"
+            ),
+            "timestamp": now.isoformat(),
+        },
+
     ],
+
     "created_at": now,
+
     "updated_at": now,
 }
-    # Create response BEFORE MongoDB adds _id
+
+
+    # Create response before MongoDB adds _id
     response = result.copy()
+
 
     # Store complaint
     complaints_collection.insert_one(result)
-
     print("\nComplaint Submitted Successfully")
     print("=" * 50)
+
     print(f"Complaint ID       : {result['complaint_id']}")
     print(f"Category           : {result['category']}")
     print(f"Urgency            : {result['urgency']}")
     print(f"Priority Score     : {result['priority_score']}")
     print(f"Priority Level     : {result['priority_level']}")
     print(f"Department         : {result['assigned_department']}")
+    print(f"Latitude           : {result['latitude']}")
+    print(f"Longitude          : {result['longitude']}")
     print(f"Status             : {result['status']}")
     print(f"SLA Deadline       : {result['sla_deadline']}")
     print(f"Created At         : {result['created_at']}")
+
+    print("\nComplaint Verification")
+    print("=" * 50)
+    print(f"Verification Status : {verification['verification_status']}")
+    print(f"Match Score         : {verification['match_score']}")
+    print(f"Category Match      : {verification.get('category_match', False)}")
+    print(f"Reason              : {verification['reason']}")
     print("=" * 50)
 
-    # Remove unnecessary fields from API response
+    print("=" * 50)
+
+    # Remove embedding from API response
     response.pop("embedding", None)
 
     return response
@@ -211,6 +339,8 @@ def submit_complaint(request: ComplaintRequest):
 def submit_speech_complaint(
     audio: UploadFile = File(...),
     location: str = Form(...),
+    pincode: str = Form(None),
+    ward_no: str = Form(None),
 ):
     # 1. Location Validation
     if not location or not location.strip():
@@ -296,6 +426,10 @@ def submit_speech_complaint(
 
         "complaint": transcribed_text,
         "transcribed_complaint": transcribed_text,
+
+        "location": location,
+        "pincode": pincode,
+        "ward_no": ward_no,
 
         "status": "Pending",
         "assigned_department": get_department(processed["category"]),

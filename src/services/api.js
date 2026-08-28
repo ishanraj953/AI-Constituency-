@@ -26,28 +26,49 @@ export const getBackendStatus = async () => {
 
 
 /**
- * Submit a citizen complaint
+ * Submit a citizen complaint with a geo-tagged image
  * POST /complaints
- *
- * Body:
- * {
- *   complaint,
- *   location
- * }
  */
-export const submitComplaint = async (complaint, location) => {
+export const submitComplaint = async (
+  complaint,
+  location,
+  pincode,
+  wardNo,
+  image
+) => {
   try {
-    const response = await api.post('/complaints', {
-      complaint,
-      location,
-    });
+    const formData = new FormData()
 
-    return response.data;
+    formData.append('complaint', complaint)
+    formData.append('location', location)
+    formData.append('pincode', pincode || '')
+    formData.append('ward_no', wardNo || '')
+
+    if (image) {
+      formData.append('image', image)
+    }
+
+    const response = await api.post(
+      '/complaints',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+
+    return response.data
+
   } catch (error) {
-    console.error('Error submitting complaint:', error);
-    throw error;
+    console.error(
+      'Error submitting complaint:',
+      error.response?.data || error
+    )
+
+    throw error
   }
-};
+}
 
 
 /**
