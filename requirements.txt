@@ -16,3 +16,4 @@ pyjwt
 pillow
 requests
 cloudinary
+passlib[bcrypt]
