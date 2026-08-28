@@ -6,17 +6,29 @@ export const ProtectedRoute = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xs text-slate-400">
+        Authenticating session...
+      </div>
+    );
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // If user is logged in but doesn't have the right role
-    return <Navigate to={user.role === 'ADMIN' ? '/admin' : '/user'} replace />;
+  const userRole = (user.role || 'USER').toUpperCase();
+
+  if (allowedRoles && !allowedRoles.map(r => r.toUpperCase()).includes(userRole)) {
+    if (userRole === 'ADMIN') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else if (userRole === 'STAFF') {
+      return <Navigate to="/staff/dashboard" replace />;
+    } else {
+      return <Navigate to="/user/dashboard" replace />;
+    }
   }
 
   return <Outlet />;
 };
+

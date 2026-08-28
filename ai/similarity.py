@@ -17,18 +17,34 @@ class SimilarityEngine:
     def find_similar(self, complaint: dict, complaints: list[dict]) -> list[dict]:
         similar = []
 
+        target_embedding = complaint.get("embedding")
+        if not target_embedding or not isinstance(target_embedding, (list, tuple)):
+            return []
+
         print("\nSimilarity Results")
         print("=" * 70)
 
         for stored in complaints:
+            if not isinstance(stored, dict):
+                continue
 
-            score = self.compare_embeddings(
-                complaint["embedding"],
-                stored["embedding"]
-            )
+            stored_embedding = stored.get("embedding")
+            if not stored_embedding or not isinstance(stored_embedding, (list, tuple)):
+                continue
 
-            print(f"Category : {stored['category']}")
-            print(f"Summary  : {stored['summary']}")
+            try:
+                score = self.compare_embeddings(
+                    target_embedding,
+                    stored_embedding
+                )
+            except Exception as e:
+                print(f"[Similarity] Error comparing embeddings: {e}")
+                continue
+
+            category = stored.get("category", "Other")
+            summary = stored.get("summary", "")
+            print(f"Category : {category}")
+            print(f"Summary  : {summary}")
             print(f"Score    : {score:.3f}")
             print("-" * 70)
 

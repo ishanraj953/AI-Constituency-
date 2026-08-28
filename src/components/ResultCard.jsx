@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Check, Copy, Hash, MapPin, Users, ShieldCheck, Tag, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 
 export default function ResultCard({ result }) {
+  const [copied, setCopied] = useState(false);
   if (!result) return null;
 
   const {
+    complaint_id,
     category,
     urgency,
     priority_score,
@@ -12,32 +15,39 @@ export default function ResultCard({ result }) {
     beneficiaries,
     location,
     similar_count,
+    image_path,
+    verification_status,
+    detected_category,
+    detected_severity,
+    image_summary
   } = result;
+
+  const displayId = complaint_id || 'CMP-PENDING';
+
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(displayId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Badge coloring helper for Urgency and Priority
   const getSeverityStyles = (level) => {
     const norm = (level || '').toLowerCase();
     if (norm === 'high' || norm === 'critical') {
       return {
-        bg: 'bg-rose-50 border-rose-200 text-rose-700',
-        dot: 'bg-rose-500',
-        text: 'text-rose-700',
-        fill: 'fill-rose-500'
+        bg: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300',
+        dot: 'bg-rose-500'
       };
     }
     if (norm === 'medium' || norm === 'moderate') {
       return {
-        bg: 'bg-amber-50 border-amber-200 text-amber-700',
-        dot: 'bg-amber-500',
-        text: 'text-amber-700',
-        fill: 'fill-amber-500'
+        bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',
+        dot: 'bg-amber-500'
       };
     }
     return {
-      bg: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-      dot: 'bg-emerald-500',
-      text: 'text-emerald-700',
-      fill: 'fill-emerald-500'
+      bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300',
+      dot: 'bg-emerald-500'
     };
   };
 
@@ -45,18 +55,36 @@ export default function ResultCard({ result }) {
   const priorityStyle = getSeverityStyles(priority_level);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden transition-all duration-300">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden transition-all duration-300">
       {/* Header banner */}
-      <div className="bg-gradient-to-r from-govblue-700 to-govblue-900 px-6 py-4 text-white">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="bg-gradient-to-r from-govblue-700 via-govblue-800 to-govblue-900 px-6 py-5 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="text-xs uppercase tracking-wider text-govblue-200 font-semibold">AI Analysis Result</span>
-            <h3 className="text-lg font-bold font-['Outfit'] mt-0.5">Submission Processed</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-wider text-govblue-200 font-bold">AI Grievance Confirmation</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300 border border-emerald-400/30">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Registered
+              </span>
+            </div>
+            <h3 className="text-xl font-extrabold font-['Outfit'] mt-1">Complaint Successfully Filed</h3>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-md border border-white/20">
-            <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
-            Saved to Database
-          </span>
+
+          {/* Prominent Complaint No. Badge */}
+          <div className="flex items-center gap-2 bg-white/10 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl">
+            <Hash className="h-4 w-4 text-govblue-200" />
+            <div className="text-right">
+              <div className="text-[10px] uppercase font-bold text-govblue-200 tracking-wider">Complaint No.</div>
+              <div className="font-mono text-sm font-extrabold text-white tracking-widest">{displayId}</div>
+            </div>
+            <button
+              onClick={handleCopyId}
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors ml-1 text-govblue-200 hover:text-white"
+              title="Copy Complaint ID"
+            >
+              {copied ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -64,9 +92,9 @@ export default function ResultCard({ result }) {
         {/* Metric Badges Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Category */}
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1">Category</span>
-            <span className="text-sm font-bold text-slate-800 break-words">{category || 'Uncategorized'}</span>
+          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 rounded-xl p-4 flex flex-col justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">Category</span>
+            <span className="text-sm font-bold text-slate-800 dark:text-slate-100 break-words">{category || 'Uncategorized'}</span>
           </div>
 
           {/* Urgency */}
@@ -88,13 +116,12 @@ export default function ResultCard({ result }) {
           </div>
 
           {/* Priority Score */}
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 rounded-xl p-4">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Priority Score</span>
-              <span className="text-sm font-bold text-slate-800">{priority_score ?? 0}/100</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Score</span>
+              <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100">{priority_score ?? 0}/100</span>
             </div>
-            {/* Score progress bar */}
-            <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-2">
               <div 
                 className="bg-govblue-600 h-2 rounded-full transition-all duration-500" 
                 style={{ width: `${Math.min(100, Math.max(0, priority_score ?? 0))}%` }}
@@ -104,45 +131,66 @@ export default function ResultCard({ result }) {
         </div>
 
         {/* Similar Count & Location */}
-        <div className="flex flex-wrap items-center gap-4 py-4 border-t border-b border-slate-100">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-govblue-600 flex-shrink-0">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-            </svg>
-            <span className="font-semibold text-slate-700">Location:</span> {location}
+        <div className="flex flex-wrap items-center gap-4 py-4 border-t border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <MapPin className="h-4 w-4 text-govblue-600 dark:text-govblue-400 flex-shrink-0" />
+            <span className="font-semibold text-slate-700 dark:text-slate-200">Location:</span> {location}
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-slate-600 sm:ml-auto">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-govblue-50 text-govblue-700 border border-govblue-100">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-3.5 w-3.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7C4.68 9.547 4.636 10.768 4.636 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.092-1.209.138-2.43.138-3.662z" />
-              </svg>
-              {similar_count ?? 0} similar complaints found in area
+          <div className="flex items-center gap-2 text-sm sm:ml-auto">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-govblue-50 dark:bg-govblue-950/60 text-govblue-700 dark:text-govblue-300 border border-govblue-200 dark:border-govblue-800/70">
+              <Users className="h-3.5 w-3.5" />
+              {similar_count ?? 0} duplicate/similar complaints combined in area
             </span>
           </div>
         </div>
 
-        {/* Summary Details */}
-        <div className="space-y-4">
-          <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">AI Executive Summary</h4>
-            <p className="text-slate-700 text-sm leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+        {/* AI Executive Summary & Visual Evidence */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">AI Executive Summary</h4>
+            <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
               {summary || 'No summary generated.'}
             </p>
+
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Beneficiaries Impacted</h4>
+            <div className="flex items-start gap-2.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <Users className="h-4 w-4 text-govblue-500 mt-0.5" />
+              <p className="text-slate-700 dark:text-slate-300 text-sm font-medium">
+                {beneficiaries || 'General public & constituency residents'}
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Potential Beneficiaries</h4>
-            <div className="flex items-start gap-2.5 bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <div className="text-slate-400 mt-0.5">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-govblue-500">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                </svg>
+          {/* Visual AI Evidence Findings */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                Visual Evidence Assessment
+              </h4>
+              {verification_status && (
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  {verification_status}
+                </span>
+              )}
+            </div>
+
+            {detected_category && (
+              <div className="text-xs text-slate-600 dark:text-slate-300">
+                <span className="font-semibold">Detected Hazard: </span>
+                <span className="font-bold text-slate-800 dark:text-slate-100">{detected_category}</span> ({detected_severity || 'High'} Severity)
               </div>
-              <p className="text-slate-700 text-sm font-medium">
-                {beneficiaries || 'General public'}
+            )}
+
+            {image_summary && (
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                {image_summary}
               </p>
+            )}
+
+            <div className="pt-2 text-xs text-govblue-700 dark:text-govblue-300 flex items-center gap-1.5 font-medium">
+              <span>Your tracking ID: <strong className="font-mono">{displayId}</strong></span>
             </div>
           </div>
         </div>
@@ -150,3 +198,4 @@ export default function ResultCard({ result }) {
     </div>
   );
 }
+

@@ -69,3 +69,13 @@ def require_admin(current_user: dict = Depends(get_current_user)):
         )
     return current_user
 
+def require_admin_or_staff(current_user: dict = Depends(get_current_user)):
+    role = str(current_user.get("role", "")).upper()
+    if role not in ["ADMIN", "STAFF"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges. Staff or Administrator access required."
+        )
+    return current_user
+
+

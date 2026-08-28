@@ -33,9 +33,9 @@ export default function PriorityChart({ distribution }) {
   const totalComplaints = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between h-[340px] space-y-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between h-[340px] space-y-4">
       <div>
-        <h3 className="text-base font-bold text-slate-800 font-['Outfit']">Priority Segmentation</h3>
+        <h3 className="text-base font-bold text-slate-800 dark:text-white font-['Outfit']">Priority Segmentation</h3>
         <p className="text-[11px] text-slate-400">Proportion of high, medium, and low severity issues.</p>
       </div>
 
