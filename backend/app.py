@@ -1,27 +1,64 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, APIRouter, UploadFile, File, Form, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from backend.auth.auth_utils import get_current_user, require_admin, get_password_hash
+from backend.auth.auth_router import router as auth_router
+from backend.database.mongodb import complaints_collection, users_collection
+from backend.verification.complaint_verifier import ComplaintVerifier
+from backend.geo.geo_extractor import extract_geo_location
+from backend.image_analysis.image_analyzer import ImageAnalyzer
+from backend.speech.speech_to_text import transcribe_audio
+from ai.complaint_processor import ComplaintProcessor
+from ai.similarity import SimilarityEngine
+from ai.ranking import PriorityEngine
+from datetime import datetime, timezone, timedelta
+from contextlib import asynccontextmanager
 import tempfile
 import shutil
 import os
 import uuid
-from backend.verification.complaint_verifier import ComplaintVerifier
-from backend.geo.geo_extractor import extract_geo_location
-from backend.image_analysis.image_analyzer import ImageAnalyzer
-from datetime import datetime, timezone, timedelta
 
-from backend.speech.speech_to_text import transcribe_audio
-
-from ai.complaint_processor import ComplaintProcessor
-from ai.similarity import SimilarityEngine
-from ai.ranking import PriorityEngine
-
-from backend.database.mongodb import complaints_collection
-
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure default admin exists on backend startup
+    try:
+        admin_user = users_collection.find_one({"role": "ADMIN"})
+        if not admin_user:
+            admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com").strip().lower()
+            admin_password = os.getenv("ADMIN_PASSWORD", "adminpassword")
+            admin_name = os.getenv("ADMIN_NAME", "Administrator")
+            users_collection.insert_one({
+                "user_id": str(uuid.uuid4()),
+                "name": admin_name,
+                "email": admin_email,
+                "password_hash": get_password_hash(admin_password),
+                "role": "ADMIN",
+                "created_at": datetime.now(timezone.utc)
+            })
+            print(f"[Admin Setup] Initialized default admin account: {admin_email} / {admin_password}")
+        else:
+            print(f"[Admin Setup] Existing admin account detected: {admin_user.get('email')}")
+    except Exception as e:
+        print(f"[Admin Setup] Warning during admin check: {e}")
+    yield
 
 app = FastAPI(
     title="AI Constituency Backend",
     version="1.0.0",
+    lifespan=lifespan,
 )
+
+# Robust CORS Configuration for hosting
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_origin_regex=".*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+api_router = APIRouter()
 
 
 processor = ComplaintProcessor()
@@ -101,20 +138,30 @@ class ResolutionRequest(BaseModel):
     resolution_remarks: str
 
 
-@app.get("/")
+@api_router.get("/")
 def home():
     return {
-        "message": "AI Constituency Backend Running"
+        "status": "online",
+        "message": "AI Constituency Backend Running",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "database": "connected"
     }
 
 
-@app.post("/complaints")
+@api_router.post("/complaints")
 async def submit_complaint(
     complaint: str = Form(...),
     location: str = Form(...),
     pincode: str = Form(...),
     ward_no: str = Form(...),
     image: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
 ):
 
     # Read uploaded image
@@ -184,11 +231,14 @@ async def submit_complaint(
 
     now = datetime.now(timezone.utc)
 
+    user_id = current_user.get("user_id", str(current_user.get("_id", "")))
+
     result = {
 
     **processed,
 
     "complaint_id": generate_complaint_id(),
+    "user_id": user_id,
 
     "similar_count": len(matches),
 
@@ -197,6 +247,7 @@ async def submit_complaint(
     "priority_level": ranking["priority_level"],
 
     "complaint": complaint,
+
 
     "transcribed_complaint": None,
 
@@ -335,12 +386,13 @@ async def submit_complaint(
     return response
 
 
-@app.post("/speech-complaint")
+@api_router.post("/speech-complaint")
 def submit_speech_complaint(
     audio: UploadFile = File(...),
     location: str = Form(...),
     pincode: str = Form(None),
     ward_no: str = Form(None),
+    current_user: dict = Depends(get_current_user),
 ):
     # 1. Location Validation
     if not location or not location.strip():
@@ -414,11 +466,13 @@ def submit_speech_complaint(
     )
 
     now = datetime.now(timezone.utc)
+    user_id = current_user.get("user_id", str(current_user.get("_id", "")))
 
     result = {
         **processed,
 
         "complaint_id": generate_complaint_id(),
+        "user_id": user_id,
 
         "similar_count": len(matches),
         "priority_score": ranking["priority_score"],
@@ -459,12 +513,15 @@ def submit_speech_complaint(
     return response
 
 
-@app.get("/complaints")
-def get_complaints():
+@api_router.get("/complaints")
+def get_complaints(current_user: dict = Depends(get_current_user)):
+    query = {}
+    if current_user.get("role") != "ADMIN":
+        query["user_id"] = current_user.get("user_id", str(current_user.get("_id", "")))
 
     complaints = list(
         complaints_collection.find(
-            {},
+            query,
             {
                 "_id": 0,
                 "embedding": 0,
@@ -478,8 +535,8 @@ def get_complaints():
     }
 
 
-@app.get("/analytics/statistics")
-def get_analytics_statistics():
+@api_router.get("/analytics/statistics")
+def get_analytics_statistics(current_user: dict = Depends(require_admin)):
     try:
         total = complaints_collection.count_documents({})
         high = complaints_collection.count_documents(
@@ -502,8 +559,8 @@ def get_analytics_statistics():
         raise HTTPException(status_code=500, detail=f"Database analytics stats error: {str(e)}")
 
 
-@app.get("/analytics/top-issues")
-def get_analytics_top_issues():
+@api_router.get("/analytics/top-issues")
+def get_analytics_top_issues(current_user: dict = Depends(require_admin)):
     try:
         pipeline = [
             {"$group": {"_id": "$category", "count": {"$sum": 1}}},
@@ -516,8 +573,8 @@ def get_analytics_top_issues():
         raise HTTPException(status_code=500, detail=f"Database analytics top issues error: {str(e)}")
 
 
-@app.get("/analytics/category-distribution")
-def get_analytics_category_distribution():
+@api_router.get("/analytics/category-distribution")
+def get_analytics_category_distribution(current_user: dict = Depends(require_admin)):
     try:
         total = complaints_collection.count_documents({})
         pipeline = [
@@ -540,8 +597,8 @@ def get_analytics_category_distribution():
         raise HTTPException(status_code=500, detail=f"Database category distribution error: {str(e)}")
 
 
-@app.get("/analytics/priority-distribution")
-def get_analytics_priority_distribution():
+@api_router.get("/analytics/priority-distribution")
+def get_analytics_priority_distribution(current_user: dict = Depends(require_admin)):
     try:
         pipeline = [
             {"$group": {"_id": "$priority_level", "count": {"$sum": 1}}},
@@ -572,8 +629,8 @@ def get_analytics_priority_distribution():
         raise HTTPException(status_code=500, detail=f"Database priority distribution error: {str(e)}")
 
 
-@app.get("/analytics/ward-analysis")
-def get_analytics_ward_analysis():
+@api_router.get("/analytics/ward-analysis")
+def get_analytics_ward_analysis(current_user: dict = Depends(require_admin)):
     try:
         pipeline = [
             {"$group": {"_id": "$location", "count": {"$sum": 1}}},
@@ -586,8 +643,8 @@ def get_analytics_ward_analysis():
         raise HTTPException(status_code=500, detail=f"Database ward analysis error: {str(e)}")
 
 
-@app.get("/analytics/activity-summary")
-def get_analytics_activity_summary():
+@api_router.get("/analytics/activity-summary")
+def get_analytics_activity_summary(current_user: dict = Depends(require_admin)):
     try:
         total = complaints_collection.count_documents({})
         high = complaints_collection.count_documents({"priority_level": {"$in": ["High", "Critical", "high", "critical"]}})
@@ -627,10 +684,11 @@ def get_analytics_activity_summary():
         raise HTTPException(status_code=500, detail=f"Database activity summary generation error: {str(e)}")
 
 
-@app.patch("/complaints/{complaint_id}/status")
+@api_router.patch("/complaints/{complaint_id}/status")
 def update_complaint_status(
     complaint_id: str,
-    request: StatusUpdateRequest
+    request: StatusUpdateRequest,
+    current_user: dict = Depends(require_admin)
 ):
 
     # Validate status
@@ -685,8 +743,8 @@ def update_complaint_status(
         "status": request.status
     }
 
-@app.get("/complaints/{complaint_id}/track")
-def track_complaint(complaint_id: str):
+@api_router.get("/complaints/{complaint_id}/track")
+def track_complaint(complaint_id: str, current_user: dict = Depends(get_current_user)):
 
     complaint = complaints_collection.find_one(
         {"complaint_id": complaint_id},
@@ -698,13 +756,21 @@ def track_complaint(complaint_id: str):
             status_code=404,
             detail="Complaint not found"
         )
+        
+    user_id = current_user.get("user_id", str(current_user.get("_id", "")))
+    if current_user.get("role") != "ADMIN" and complaint.get("user_id") != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to view this complaint"
+        )
 
     return complaint
 
-@app.patch("/complaints/{complaint_id}/assign")
+@api_router.patch("/complaints/{complaint_id}/assign")
 def assign_complaint(
     complaint_id: str,
-    request: AssignmentRequest
+    request: AssignmentRequest,
+    current_user: dict = Depends(require_admin)
 ):
 
     # Find the existing complaint
@@ -763,10 +829,11 @@ def assign_complaint(
         "status": "Assigned"
     }
 
-@app.patch("/complaints/{complaint_id}/resolve")
+@api_router.patch("/complaints/{complaint_id}/resolve")
 def resolve_complaint(
     complaint_id: str,
-    request: ResolutionRequest
+    request: ResolutionRequest,
+    current_user: dict = Depends(require_admin)
 ):
 
     # Find existing complaint
@@ -815,10 +882,9 @@ def resolve_complaint(
         "status": "Resolved",
         "resolution_remarks": request.resolution_remarks
     }
-# we have to automate it also
 
-@app.post("/complaints/check-escalations")
-def check_escalations():
+@api_router.post("/complaints/check-escalations")
+def check_escalations(current_user: dict = Depends(require_admin)):
 
     current_time = datetime.now(timezone.utc)
 
@@ -844,3 +910,11 @@ def check_escalations():
         "message": "Escalation check completed",
         "escalated_count": result.modified_count
     }
+
+# Register Auth Router for both root and /api prefixes
+app.include_router(auth_router)
+app.include_router(auth_router, prefix="/api")
+
+# Register Main API Router for both root and /api prefixes
+app.include_router(api_router)
+app.include_router(api_router, prefix="/api")

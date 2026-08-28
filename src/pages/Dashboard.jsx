@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getComplaints } from '../services/api';
 import ComplaintCard from '../components/ComplaintCard';
 import Loader from '../components/Loader';
 
-export default function Dashboard({ setActivePage }) {
+export default function Dashboard() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,15 +67,15 @@ export default function Dashboard({ setActivePage }) {
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <button
-            onClick={() => setActivePage('analytics')}
+          <Link
+            to="/admin/analytics"
             className="inline-flex items-center gap-2 rounded-lg bg-govblue-600 hover:bg-govblue-700 text-white px-4 py-2 text-sm font-semibold shadow-sm transition-all justify-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v-2.625c0-1.03-.84-1.875-1.875-1.875h-.75c-1.03 0-1.875.84-1.875 1.875v3m9 8.25H3m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12" />
             </svg>
             Analytics
-          </button>
+          </Link>
           
           <button
             onClick={fetchData}

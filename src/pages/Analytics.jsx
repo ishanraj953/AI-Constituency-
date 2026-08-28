@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/analyticsApi';
 import StatisticsCards from '../components/StatisticsCards';
 import TopIssuesChart from '../components/TopIssuesChart';
@@ -8,8 +9,10 @@ import WardAnalyticsChart from '../components/WardAnalyticsChart';
 import ActivitySummaryCard from '../components/ActivitySummaryCard';
 import Loader from '../components/Loader';
 
-export default function Analytics({ setActivePage }) {
+export default function Analytics() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
+
   const [issues, setIssues] = useState([]);
   const [distribution, setDistribution] = useState([]);
   const [priority, setPriority] = useState([]);
@@ -69,7 +72,7 @@ export default function Analytics({ setActivePage }) {
           </p>
         </div>
         <button
-          onClick={() => setActivePage('dashboard')}
+          onClick={() => navigate('/admin/dashboard')}
           className="inline-flex items-center gap-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 active:bg-slate-100 text-xs font-bold text-slate-700 px-4 py-2.5 shadow-sm transition-all focus:outline-none shrink-0 justify-center"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">

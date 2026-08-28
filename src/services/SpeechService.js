@@ -1,8 +1,5 @@
-import axios from 'axios';
+import { api } from './api';
 
-const api = axios.create({
-  baseURL: '/api',
-});
 
 /**
  * Submit a voice complaint to the backend

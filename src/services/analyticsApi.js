@@ -1,19 +1,12 @@
-import axios from 'axios';
+import { api } from './api';
 
-const base = import.meta.env.VITE_API_BASE_URL;
-const api = axios.create({
-  baseURL: base ? `${base}/analytics` : '/api/analytics',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 /**
  * Fetch top analytics overview KPI counts
  * GET /analytics/statistics
  */
 export const getStatistics = async () => {
-  const response = await api.get('/statistics');
+  const response = await api.get('/analytics/statistics');
   return response.data;
 };
 
@@ -23,7 +16,7 @@ export const getStatistics = async () => {
  * GET /analytics/top-issues
  */
 export const getTopIssues = async () => {
-  const response = await api.get('/top-issues');
+  const response = await api.get('/analytics/top-issues');
   return response.data;
 };
 
@@ -32,7 +25,7 @@ export const getTopIssues = async () => {
  * GET /analytics/category-distribution
  */
 export const getCategoryDistribution = async () => {
-  const response = await api.get('/category-distribution');
+  const response = await api.get('/analytics/category-distribution');
   return response.data;
 };
 
@@ -41,7 +34,7 @@ export const getCategoryDistribution = async () => {
  * GET /analytics/priority-distribution
  */
 export const getPriorityDistribution = async () => {
-  const response = await api.get('/priority-distribution');
+  const response = await api.get('/analytics/priority-distribution');
   return response.data;
 };
 
@@ -50,7 +43,7 @@ export const getPriorityDistribution = async () => {
  * GET /analytics/ward-analysis
  */
 export const getWardAnalysis = async () => {
-  const response = await api.get('/ward-analysis');
+  const response = await api.get('/analytics/ward-analysis');
   return response.data;
 };
 
@@ -59,9 +52,10 @@ export const getWardAnalysis = async () => {
  * GET /analytics/activity-summary
  */
 export const getActivitySummary = async () => {
-  const response = await api.get('/activity-summary');
+  const response = await api.get('/analytics/activity-summary');
   return response.data;
 };
+
 
 export default {
   getStatistics,

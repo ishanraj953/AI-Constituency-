@@ -1,79 +1,53 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import AppLayout from './layouts/AppLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
-import Navbar from './components/Navbar';
-
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import ComplaintManagement from './pages/ComplaintManagement';
 import CitizenTracking from './pages/CitizenTracking';
-
+import UserDashboard from './pages/UserDashboard';
 
 export default function App() {
-
-  const [activePage, setActivePage] = useState('home');
-
-  // Page Switcher renderer
-  const renderPage = () => {
-
-    switch (activePage) {
-
-      case 'home':
-        return <Home />;
-
-      case 'dashboard':
-        return <Dashboard setActivePage={setActivePage} />;
-      case 'tracking':
-        return <CitizenTracking setActivePage={setActivePage} />;
-
-      case 'analytics':
-        return <Analytics setActivePage={setActivePage} />;
-
-      case 'complaints':
-        return (
-          <ComplaintManagement
-            setActivePage={setActivePage}
-          />
-        );
-
-      default:
-        return <Home />;
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route element={<AppLayout />}>
+            
+            {/* Public Routes */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* User & Citizen Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>
+              <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
+              <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/user/submit" element={<Home />} />
+              <Route path="/user/tracking" element={<CitizenTracking />} />
+            </Route>
 
-      {/* Top Header Navbar */}
-      <Navbar
-        activePage={activePage}
-        setActivePage={setActivePage}
-      />
+            {/* Admin Dedicated Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+              <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/admin/dashboard" element={<Dashboard />} />
+              <Route path="/admin/analytics" element={<Analytics />} />
+              <Route path="/admin/complaints" element={<ComplaintManagement />} />
+            </Route>
 
-      {/* Main Pages Switchboard */}
-      <div className="flex-grow flex flex-col">
-        {renderPage()}
-      </div>
-
-      {/* Government Standard Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 mt-auto text-center text-xs text-slate-400 font-medium">
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-1">
-
-          <p>
-            © {new Date().getFullYear()} AI Constituency
-            Grievance Redressal System. All Rights Reserved.
-          </p>
-
-          <p className="text-[10px] uppercase tracking-widest text-slate-300">
-            Powered by FastAPI • MongoDB • AI Semantic Similarity
-            Embedding Ranking
-          </p>
-
-        </div>
-
-      </footer>
-
-    </div>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+            
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
