@@ -11,7 +11,7 @@ const api = axios.create({
  * - audio: Blob (WebM or WAV)
  * - location: String
  */
-export const submitSpeechComplaint = async (audioBlob, location) => {
+export const submitSpeechComplaint = async (audioBlob, location, pincode, wardNo) => {
   try {
     const formData = new FormData();
     // Identify recorded MIME type and append file extension
@@ -21,6 +21,8 @@ export const submitSpeechComplaint = async (audioBlob, location) => {
 
     formData.append('audio', audioBlob, filename);
     formData.append('location', location);
+    formData.append('pincode', pincode || '');
+    formData.append('ward_no', wardNo || '');
 
     const response = await api.post('/speech-complaint', formData, {
       headers: {

@@ -1,9 +1,12 @@
-from database.mongodb import complaints_collection
+from backend.database.mongodb import complaints_collection
 
-complaints_collection.insert_one(
-    {
-        "name": "MongoDB Connected"
-    }
-)
-
-print("Connected Successfully")
+if __name__ == "__main__":
+    try:
+        complaints_collection.insert_one(
+            {
+                "name": "MongoDB Connected Test"
+            }
+        )
+        print("Connected Successfully")
+    except Exception as e:
+        print(f"Connection Failed: {e}")
