@@ -1,18 +1,34 @@
 <!doctype html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230f67c2'%3E%3Cpath d='M12 2L2 22h20L12 2zm0 3.99L18.8 19H5.2L12 5.99z'/%3E%3C/svg%3E" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="AI Constituency - Modern AI-powered Citizen Complaint Management and MP Analytical Dashboard." />
     <title>AI Constituency Portal</title>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <!-- Google Fonts: Inter and Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
-  <body class="h-full text-slate-900 antialiased font-['Inter',sans-serif]">
+  <body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased font-['Inter',sans-serif] transition-colors duration-200">
     <div id="root" class="min-h-screen flex flex-col"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+

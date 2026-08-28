@@ -22,9 +22,9 @@ export default function WardAnalyticsChart({ wards }) {
   const chartData = wards.slice(0, 10);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between h-[340px] space-y-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between h-[340px] space-y-4">
       <div>
-        <h3 className="text-base font-bold text-slate-800 font-['Outfit']">Regional Ward Reports</h3>
+        <h3 className="text-base font-bold text-slate-800 dark:text-white font-['Outfit']">Regional Ward Reports</h3>
         <p className="text-[11px] text-slate-400">Top 10 location areas sorted by volume.</p>
       </div>
 

@@ -62,18 +62,18 @@ export default function Analytics() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full space-y-6">
       {/* Page Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 font-['Outfit']">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white font-['Outfit']">
             Constituency Analytics
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            AI generated insights from citizen complaints
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            AI generated insights from citizen complaints and photographic evidence
           </p>
         </div>
         <button
           onClick={() => navigate('/admin/dashboard')}
-          className="inline-flex items-center gap-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 active:bg-slate-100 text-xs font-bold text-slate-700 px-4 py-2.5 shadow-sm transition-all focus:outline-none shrink-0 justify-center"
+          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 px-4 py-2.5 shadow-sm transition-all focus:outline-none shrink-0 justify-center"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -83,16 +83,17 @@ export default function Analytics() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 font-semibold">
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 text-xs text-red-800 dark:text-red-300 font-semibold">
           {error}
         </div>
       )}
 
       {loading && !stats ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-24 flex justify-center items-center">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-24 flex justify-center items-center">
           <Loader message="Synthesizing Recharts Dashboard..." />
         </div>
       ) : (
+
         <div className="space-y-6">
           {/* Section 1: KPI Statistics cards */}
           <StatisticsCards stats={stats} />

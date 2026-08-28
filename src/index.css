@@ -9,6 +9,51 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
   }
+
+  /* Dark mode text and heading enforcement */
+  .dark {
+    color-scheme: dark;
+  }
+
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6 {
+    color: #ffffff !important;
+  }
+
+  .dark .text-slate-900,
+  .dark .text-slate-800 {
+    color: #f8fafc !important;
+  }
+
+  .dark .text-slate-700,
+  .dark .text-slate-600 {
+    color: #cbd5e1 !important;
+  }
+
+  .dark .text-slate-500 {
+    color: #94a3b8 !important;
+  }
+
+  .dark .bg-white {
+    background-color: #0f172a !important;
+  }
+
+  .dark .bg-slate-50 {
+    background-color: #0b1120 !important;
+  }
+
+  .dark .bg-slate-100 {
+    background-color: #1e293b !important;
+  }
+
+  .dark .border-slate-200,
+  .dark .border-slate-300 {
+    border-color: #334155 !important;
+  }
 }
 
 /* Custom premium scrollbar for smooth scroll-views */
@@ -19,10 +64,20 @@
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+

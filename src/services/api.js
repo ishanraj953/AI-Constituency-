@@ -64,7 +64,9 @@ export const submitComplaint = async (
   location,
   pincode,
   wardNo,
-  image
+  image,
+  latitude,
+  longitude
 ) => {
   try {
     const formData = new FormData()
@@ -73,6 +75,13 @@ export const submitComplaint = async (
     formData.append('location', location)
     formData.append('pincode', pincode || '')
     formData.append('ward_no', wardNo || '')
+
+    if (latitude !== undefined && latitude !== null && !isNaN(Number(latitude)) && isFinite(Number(latitude))) {
+      formData.append('latitude', String(Number(latitude)));
+    }
+    if (longitude !== undefined && longitude !== null && !isNaN(Number(longitude)) && isFinite(Number(longitude))) {
+      formData.append('longitude', String(Number(longitude)));
+    }
 
     if (image) {
       formData.append('image', image)
@@ -89,6 +98,7 @@ export const submitComplaint = async (
     )
 
     return response.data
+
 
   } catch (error) {
     console.error(
@@ -116,7 +126,7 @@ export const getComplaints = async () => {
 };
 
 /**
- * Track a complaint by Complaint ID
+ * Track a complaint by Complaint ID (authenticated user)
  * GET /complaints/{complaint_id}/track
  */
 export const trackComplaint = async (complaintId) => {
@@ -129,6 +139,43 @@ export const trackComplaint = async (complaintId) => {
   } catch (error) {
     console.error('Error tracking complaint:', error)
     throw error
+  }
+}
+
+/**
+ * Public Track a complaint by Complaint ID (no auth required)
+ * GET /public/track/{complaint_id}
+ */
+export const publicTrackComplaint = async (complaintId) => {
+  try {
+    const response = await api.get(
+      `/public/track/${encodeURIComponent(complaintId.trim())}`
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error in public tracking:', error)
+    throw error
+  }
+}
+
+/**
+ * Get Public Live Stats
+ * GET /public/stats
+ */
+export const getPublicStats = async () => {
+  try {
+    const response = await api.get('/public/stats')
+    return response.data
+  } catch (error) {
+    console.error('Error fetching public stats:', error)
+    return {
+      total_complaints: 0,
+      resolved_complaints: 0,
+      active_complaints: 0,
+      verified_images: 0,
+      departments_count: 17,
+      average_resolution_hours: 36
+    }
   }
 }
 
@@ -228,13 +275,44 @@ export const login = async (email, password) => {
   }
 };
 
-export const register = async (name, email, password, role = "USER") => {
+export const register = async ({
+  name,
+  email,
+  password,
+  role = 'USER',
+  department = null,
+  designation = null,
+  secret_key = null
+}) => {
   try {
-    const response = await api.post('/auth/register', { name, email, password, role });
+    const response = await api.post('/auth/register', {
+      name,
+      email,
+      password,
+      role,
+      department,
+      designation,
+      secret_key
+    });
     return response.data;
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
+  }
+};
+
+/**
+ * Get Department Staff Accounts
+ * GET /auth/staff?department=...
+ */
+export const getDepartmentStaff = async (department = null) => {
+  try {
+    const params = department ? { department } : {};
+    const response = await api.get('/auth/staff', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching department staff:', error);
+    return { count: 0, staff: [] };
   }
 };
 
@@ -246,6 +324,9 @@ export default {
   updateComplaintStatus,
   resolveComplaint,
   trackComplaint,
+  publicTrackComplaint,
+  getPublicStats,
+  getDepartmentStaff,
   login,
   register
 };

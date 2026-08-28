@@ -1,15 +1,14 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { useAuth } from '../context/AuthContext';
+import Footer from '../components/Footer';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function AppLayout() {
-  const { user } = useAuth();
   const location = useLocation();
   
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-['Inter']">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-['Inter'] transition-colors duration-200">
       <Navbar />
 
       <div className="flex-grow flex flex-col w-full h-full relative">
@@ -27,16 +26,8 @@ export default function AppLayout() {
         </AnimatePresence>
       </div>
 
-      <footer className="border-t border-slate-200 bg-white py-6 mt-auto text-center text-xs text-slate-400 font-medium z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-1">
-          <p>
-            © {new Date().getFullYear()} AI Constituency Grievance Redressal System. All Rights Reserved.
-          </p>
-          <p className="text-[10px] uppercase tracking-widest text-slate-300">
-            Powered by FastAPI • MongoDB • AI Semantic Similarity Embedding Ranking
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
+

@@ -16,15 +16,22 @@ Fields:
 
 Category must be one of:
 
-- Roads
+- Roads & Bridges
 - Water Supply
-- Electricity
-- Healthcare
-- Education
-- Sanitation
-- Public Transport
-- Environment
-- Housing
+- Drainage & Sewage
+- Sanitation & Waste Management
+- Electricity & Power
+- Street Lighting
+- Public Safety & Law/Order
+- Healthcare & Hospitals
+- Education & Schools
+- Public Transport & Traffic
+- Environment & Pollution
+- Parks & Recreation
+- Housing & Slum Rehabilitation
+- Revenue & Land Records
+- Public Distribution System (PDS)
+- Social Welfare & Pensions
 - Other
 
 Urgency Rules

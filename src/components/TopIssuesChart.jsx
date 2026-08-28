@@ -22,9 +22,9 @@ export default function TopIssuesChart({ issues }) {
   const chartData = issues.slice(0, 10);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between h-[340px] space-y-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between h-[340px] space-y-4">
       <div>
-        <h3 className="text-base font-bold text-slate-800 font-['Outfit']">Primary Constituency Grievances</h3>
+        <h3 className="text-base font-bold text-slate-800 dark:text-white font-['Outfit']">Primary Constituency Grievances</h3>
         <p className="text-[11px] text-slate-400">Top 10 reported categories sorted descending.</p>
       </div>
 
