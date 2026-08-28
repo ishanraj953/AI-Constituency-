@@ -16,4 +16,8 @@ pyjwt
 pillow
 requests
 cloudinary
+fastapi
+uvicorn
+pymongo
+python-dotenv
 passlib[bcrypt]
