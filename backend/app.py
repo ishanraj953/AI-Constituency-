@@ -12,6 +12,7 @@ from backend.speech.speech_to_text import transcribe_audio
 from ai.complaint_processor import ComplaintProcessor
 from ai.similarity import SimilarityEngine
 from ai.ranking import PriorityEngine
+from backend.services.cloudinary_service import upload_image_to_cloudinary
 from datetime import datetime, timezone, timedelta
 from contextlib import asynccontextmanager
 import tempfile
@@ -304,17 +305,20 @@ async def submit_complaint(
             "image_summary": "Photographic evidence attached for civic grievance resolution."
         }
 
-    # Save the image locally
-    os.makedirs("uploads/images", exist_ok=True)
-    file_ext = os.path.splitext(image.filename)[1] if image.filename else ".jpg"
-    unique_filename = f"{uuid.uuid4().hex}{file_ext}"
-    image_path = os.path.join("uploads", "images", unique_filename).replace("\\", "/")
-    
-    try:
-        with open(image_path, "wb") as f:
-            f.write(image_bytes)
-    except Exception as e:
-        print(f"[File Save] Warning: Failed to save image locally: {e}")
+    # Save image (Cloudinary or local fallback)
+    cloudinary_url = upload_image_to_cloudinary(image_bytes, image.filename)
+    if cloudinary_url:
+        image_path = cloudinary_url
+    else:
+        os.makedirs("uploads/images", exist_ok=True)
+        file_ext = os.path.splitext(image.filename)[1] if image.filename else ".jpg"
+        unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+        image_path = os.path.join("uploads", "images", unique_filename).replace("\\", "/")
+        try:
+            with open(image_path, "wb") as f:
+                f.write(image_bytes)
+        except Exception as e:
+            print(f"[File Save] Warning: Failed to save image locally: {e}")
 
     # Process complaint text using LLM & embedding generator
     try:
@@ -648,12 +652,16 @@ async def submit_speech_complaint(
                 content_type=image.content_type or "image/jpeg"
             )
 
-            os.makedirs("uploads/images", exist_ok=True)
-            file_ext = os.path.splitext(image.filename)[1] if image.filename else ".jpg"
-            unique_filename = f"{uuid.uuid4().hex}{file_ext}"
-            image_path = os.path.join("uploads", "images", unique_filename).replace("\\", "/")
-            with open(image_path, "wb") as f:
-                f.write(image_bytes)
+            cloudinary_url = upload_image_to_cloudinary(image_bytes, image.filename)
+            if cloudinary_url:
+                image_path = cloudinary_url
+            else:
+                os.makedirs("uploads/images", exist_ok=True)
+                file_ext = os.path.splitext(image.filename)[1] if image.filename else ".jpg"
+                unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+                image_path = os.path.join("uploads", "images", unique_filename).replace("\\", "/")
+                with open(image_path, "wb") as f:
+                    f.write(image_bytes)
 
             verification = verifier.verify(
                 complaint=transcribed_text,

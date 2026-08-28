@@ -94,9 +94,6 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link to="/" className={navLinkClass('/', true)}>
-                    Home
-                  </Link>
                   <Link to="/user/dashboard" className={navLinkClass('/user/dashboard')}>
                     <LayoutDashboard className="h-4 w-4" />
                     My Grievances
@@ -108,9 +105,6 @@ export default function Navbar() {
                   <Link to="/user/tracking" className={navLinkClass('/user/tracking')}>
                     <MapPin className="h-4 w-4" />
                     Track Complaint
-                  </Link>
-                  <Link to="/how-it-works" className={navLinkClass('/how-it-works')}>
-                    How It Works
                   </Link>
                 </>
               )
@@ -293,13 +287,6 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link 
-                    to="/" 
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    Home Overview
-                  </Link>
-                  <Link 
                     to="/user/dashboard" 
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-3 py-2 rounded-xl text-sm font-bold text-govblue-600 dark:text-govblue-400 bg-govblue-50 dark:bg-govblue-950/60"
@@ -319,13 +306,6 @@ export default function Navbar() {
                     className="block px-3 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
                     Track Complaint
-                  </Link>
-                  <Link 
-                    to="/how-it-works" 
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    How It Works
                   </Link>
                 </>
               )}

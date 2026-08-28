@@ -869,8 +869,14 @@ const immediateAttentionComplaints = getImmediateAttentionComplaints()
                             {complaint.summary || complaint.complaint || 'No grievance description available.'}
                           </p>
 
+                          {complaint.image_summary && (
+                            <div className="mt-2 p-2 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 text-[11px] text-indigo-900 dark:text-indigo-200 line-clamp-2 italic">
+                              📸 <strong>AI Image Findings:</strong> "{complaint.image_summary}"
+                            </div>
+                          )}
+
                           {/* Photo Badge & Location Info */}
-                          <div className="mt-3.5 flex flex-wrap items-center gap-2 text-xs">
+                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                             {complaint.image_path && (
                               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-govblue-50 dark:bg-govblue-950/60 text-govblue-700 dark:text-govblue-300 font-bold border border-govblue-200 dark:border-govblue-800 text-[11px]">
                                 📸 Photo Attached
@@ -1019,24 +1025,37 @@ const immediateAttentionComplaints = getImmediateAttentionComplaints()
 
                 {/* AI Analysis */}
                 <PanelSection title="AI Diagnostics & Impact">
-                  <InfoItem
-                    label="Summary"
-                    value={
-                      selectedComplaint.summary ||
-                      selectedComplaint.complaint ||
-                      'No summary available.'
-                    }
-                  />
+                  <div className="space-y-4">
+                    <InfoItem
+                      label="Citizen Complaint Summary"
+                      value={
+                        selectedComplaint.summary ||
+                        selectedComplaint.complaint ||
+                        'No summary available.'
+                      }
+                    />
 
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <InfoItem
-                      label="Similar Grievances Clustered"
-                      value={selectedComplaint.similar_count ?? 0}
-                    />
-                    <InfoItem
-                      label="Estimated Beneficiaries"
-                      value={selectedComplaint.beneficiaries || 'Not Available'}
-                    />
+                    {selectedComplaint.image_summary && (
+                      <div className="p-3.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/50 dark:bg-indigo-950/30">
+                        <dt className="text-xs font-bold uppercase tracking-wide text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 mb-1">
+                          <span>📸 AI Visual Image Summary</span>
+                        </dt>
+                        <dd className="text-xs font-medium leading-relaxed text-slate-800 dark:text-slate-200 italic">
+                          "{selectedComplaint.image_summary}"
+                        </dd>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-1">
+                      <InfoItem
+                        label="Similar Grievances Clustered"
+                        value={selectedComplaint.similar_count ?? 0}
+                      />
+                      <InfoItem
+                        label="Estimated Beneficiaries"
+                        value={selectedComplaint.beneficiaries || 'Not Available'}
+                      />
+                    </div>
                   </div>
                 </PanelSection>
 
@@ -1080,25 +1099,47 @@ const immediateAttentionComplaints = getImmediateAttentionComplaints()
                         </a>
                       </div>
 
-                      {/* AI Visual Verification Details */}
-                      {(selectedComplaint.verification_status || selectedComplaint.detected_category) && (
-                        <div className="p-3.5 rounded-xl border border-govblue-200 dark:border-govblue-800 bg-govblue-50/50 dark:bg-govblue-950/30 text-xs space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-govblue-900 dark:text-govblue-200">Gemini Visual AI Verification:</span>
-                            <span className="font-bold px-2 py-0.5 rounded bg-govblue-100 dark:bg-govblue-900 text-govblue-800 dark:text-govblue-200">
-                              {selectedComplaint.verification_status || 'Verified Visual Proof'}
+                      {/* AI Visual Verification & Image Summary Details */}
+                      {(selectedComplaint.image_summary || selectedComplaint.verification_status || selectedComplaint.detected_category) && (
+                        <div className="p-4 rounded-2xl border border-indigo-200 dark:border-indigo-800 bg-gradient-to-br from-indigo-50/80 to-slate-50 dark:from-indigo-950/40 dark:to-slate-900/60 text-xs space-y-2.5 shadow-sm">
+                          <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/50 pb-2">
+                            <span className="font-extrabold text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5">
+                              <span>🤖 Gemini Visual AI Analysis</span>
+                            </span>
+                            <span className="font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 text-[10px] uppercase tracking-wider">
+                              {selectedComplaint.verification_status || 'Verified Photo Proof'}
                             </span>
                           </div>
-                          {selectedComplaint.detected_category && (
-                            <p className="text-slate-600 dark:text-slate-300">
-                              <strong>Visual Detection:</strong> {selectedComplaint.detected_category} ({selectedComplaint.detected_severity || 'High'} Severity)
-                            </p>
-                          )}
+
+                          {/* Primary Image Summary Callout */}
                           {selectedComplaint.image_summary && (
-                            <p className="text-slate-600 dark:text-slate-300 italic">
-                              "{selectedComplaint.image_summary}"
-                            </p>
+                            <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-indigo-100 dark:border-indigo-900/40">
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
+                                Image Scene & Ground Findings:
+                              </span>
+                              <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed italic font-medium">
+                                "{selectedComplaint.image_summary}"
+                              </p>
+                            </div>
                           )}
+
+                          <div className="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-300 pt-1">
+                            {selectedComplaint.detected_category && (
+                              <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px]">
+                                <strong>Detected Issue:</strong> {selectedComplaint.detected_category}
+                              </span>
+                            )}
+                            {selectedComplaint.detected_severity && (
+                              <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px]">
+                                <strong>Visual Severity:</strong> {selectedComplaint.detected_severity}
+                              </span>
+                            )}
+                            {selectedComplaint.match_score !== undefined && selectedComplaint.match_score !== null && (
+                              <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px]">
+                                <strong>Cross-Match Score:</strong> {(selectedComplaint.match_score * 100).toFixed(0)}%
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
