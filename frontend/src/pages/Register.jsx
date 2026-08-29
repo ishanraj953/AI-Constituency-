@@ -150,7 +150,7 @@ export default function Register() {
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
-            <span>MP / Admin</span>
+            <span>Municipal / Admin</span>
           </button>
         </div>
 
@@ -172,7 +172,7 @@ export default function Register() {
         {role === 'ADMIN' && (
           <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
             <Info className="h-4 w-4 shrink-0" />
-            <span>Full administrative oversight for MP/MLA offices and department triage. Master Key required.</span>
+            <span>Full administrative oversight for Municipal Corporation and department triage. Master Key required.</span>
           </div>
         )}
         

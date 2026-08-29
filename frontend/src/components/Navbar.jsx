@@ -148,7 +148,7 @@ export default function Navbar() {
                       {user.name}
                     </span>
                     <span className="text-[9px] font-extrabold uppercase tracking-wider mt-0.5 truncate max-w-[130px] text-govblue-600 dark:text-govblue-400">
-                      {user.role === 'ADMIN' ? 'MP Administrator' :
+                      {user.role === 'ADMIN' ? 'Municipal Administrator' :
                        user.role === 'STAFF' ? (user.department ? `${user.department.split(' ')[0]} Staff` : 'Dept Staff') :
                        'Citizen'}
                     </span>

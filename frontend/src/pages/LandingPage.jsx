@@ -103,7 +103,7 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-govblue-100/80 dark:bg-govblue-900/60 border border-govblue-200 dark:border-govblue-700 text-govblue-800 dark:text-govblue-200 text-xs font-extrabold uppercase tracking-widest shadow-sm mb-6"
           >
             <Sparkles className="h-4 w-4 text-govblue-600 dark:text-govblue-400" />
-            Official Member of Parliament & MLA Grievance Redressal System
+            Official Municipal Corporation Grievance Redressal System
           </motion.div>
 
           {/* Main Headline */}
@@ -497,9 +497,9 @@ export default function LandingPage() {
               <div className="h-10 w-10 rounded-xl bg-cyan-600/30 text-cyan-400 flex items-center justify-center font-bold">
                 🏛️
               </div>
-              <h3 className="text-base font-bold font-['Outfit']">MP / MLA Governance Dashboard</h3>
+              <h3 className="text-base font-bold font-['Outfit']">Municipal Governance & Command Dashboard</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Gives elected representatives heatmaps, department SLA performance metrics, and bottleneck diagnosis across all wards.
+                Gives municipal commissioners, ward councillors, and department heads heatmaps, SLA performance metrics, and bottleneck diagnosis across all wards.
               </p>
             </div>
 

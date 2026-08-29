@@ -1307,7 +1307,7 @@ const immediateAttentionComplaints = getImmediateAttentionComplaints()
                         <option value="Pending">Pending Review</option>
                         <option value="Assigned">Assigned to Officer</option>
                         <option value="In Progress">In Progress</option>
-                        <option value="Escalated">Escalated to MP Office</option>
+                        <option value="Escalated">Escalated to Municipal Commissioner</option>
                         <option value="Resolved">Resolved & Closed</option>
                       </select>
                     </div>

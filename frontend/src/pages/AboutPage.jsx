@@ -19,7 +19,7 @@ export default function AboutPage() {
           Reinventing Democratic Governance with Artificial Intelligence
         </h1>
         <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
-          A state-of-the-art civic intelligence bridge connecting citizens directly to Members of Parliament, MLAs, and municipal authorities through Multimodal AI.
+          A state-of-the-art civic intelligence bridge connecting citizens directly to Municipal Authorities, Ward Councillors, and Civic Departments through Multimodal AI.
         </p>
       </div>
 

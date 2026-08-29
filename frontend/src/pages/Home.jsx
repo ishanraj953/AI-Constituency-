@@ -138,7 +138,7 @@ export default function Home() {
                     4
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-['Outfit']">MP Dispatch</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-['Outfit']">Municipal Dispatch</h4>
                     <p className="text-xs text-slate-500 mt-0.5">Stores to MongoDB and updates the analytical dashboard in real time.</p>
                   </div>
                 </div>

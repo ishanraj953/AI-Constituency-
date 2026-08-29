@@ -42,7 +42,7 @@ async def register(user: UserCreate):
         if not user.secret_key or user.secret_key.strip() != ADMIN_SECRET_KEY:
             raise HTTPException(
                 status_code=403,
-                detail=f"Invalid Administrator Security Key. Authorization key required to register as MP Administrator."
+                detail=f"Invalid Administrator Security Key. Authorization key required to register as Municipal Administrator."
             )
     elif clean_role == "STAFF":
         if not user.secret_key or user.secret_key.strip() != STAFF_SECRET_KEY:

@@ -30,7 +30,7 @@ export default function Footer() {
 
             <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">
               <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                <ShieldCheck className="h-4 w-4" /> Official MP/MLA Portal
+                <ShieldCheck className="h-4 w-4" /> Official Municipal Portal
               </span>
               <span className="inline-flex items-center gap-1.5 text-govblue-600 dark:text-govblue-400">
                 <Cpu className="h-4 w-4" /> AI Multimodal Verified

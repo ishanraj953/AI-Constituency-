@@ -63,7 +63,7 @@ export default function Login() {
             Sign In to Portal
           </h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Sign in with your email. The portal automatically routes you based on your role (MP Administrator, Department Staff, or Citizen).
+            Sign in with your email. The portal automatically routes you based on your role (Municipal Administrator, Department Staff, or Citizen).
           </p>
         </div>
         
@@ -125,7 +125,7 @@ export default function Login() {
               onClick={() => setDemoCredentials('admin@example.com', 'adminpassword')}
               className="p-2 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-left hover:bg-rose-100 transition"
             >
-              <span className="font-bold block">🏛️ MP Admin</span>
+              <span className="font-bold block">🏛️ Municipal Admin</span>
               <span className="text-[10px] text-slate-500">Full Dashboard</span>
             </button>
 

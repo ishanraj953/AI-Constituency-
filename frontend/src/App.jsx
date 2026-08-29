@@ -58,7 +58,7 @@ export default function App() {
               <Route path="/staff/dashboard" element={<StaffDashboard />} />
             </Route>
 
-            {/* Command Center & Regional Analytics (Accessible to MP Admin & Department Staff) */}
+            {/* Command Center & Regional Analytics (Accessible to Municipal Admin & Department Staff) */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']} />}>
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/admin/dashboard" element={<Dashboard />} />

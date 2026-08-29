@@ -33,7 +33,7 @@ export default function FaqPage() {
     },
     {
       q: 'What should I do if my complaint is marked as overdue or escalated?',
-      a: 'When an SLA deadline expires without resolution, our system automatically marks the case as "Overdue" and escalates it to senior administrative officers and the Member of Parliament dashboard for immediate intervention.'
+      a: 'When an SLA deadline expires without resolution, our system automatically marks the case as "Overdue" and escalates it to senior administrative officers and the Municipal Commissioner dashboard for immediate intervention.'
     },
     {
       q: 'Is my personal data and identity protected?',
